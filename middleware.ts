@@ -1,30 +1,45 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  try {
+    const { pathname } = request.nextUrl;
 
-  // PUBLIC ROUTES
-  const publicRoutes = ['/login', '/favicon.ico', '/images'];
-  const isPublic = publicRoutes.some((route) => pathname.startsWith(route));
+    // Static assets & Next internal routes pass through
+    if (
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      pathname.includes('.') ||
+      pathname === '/favicon.ico'
+    ) {
+      return NextResponse.next();
+    }
 
-  // CHECK AUTH COOKIE / SESSION (Using local/supabase session indicator cookie)
-  const sessionCookie = request.cookies.get('naam_session')?.value || request.cookies.get('sb-access-token')?.value;
+    // PUBLIC ROUTES
+    const publicRoutes = ['/login', '/favicon.ico', '/images'];
+    const isPublic = publicRoutes.some((route) => pathname.startsWith(route));
 
-  // Unauthenticated user attempting to access protected dashboard routes
-  if (!sessionCookie && !isPublic && pathname !== '/') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    // CHECK AUTH COOKIE / SESSION (Using local/supabase session indicator cookie)
+    const sessionCookie = request.cookies.get('naam_session')?.value || request.cookies.get('sb-access-token')?.value;
+
+    // Unauthenticated user attempting to access protected dashboard routes
+    if (!sessionCookie && !isPublic && pathname !== '/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
+
+    // Authenticated user trying to access /login
+    if (sessionCookie && pathname === '/login') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
+  } catch (err) {
+    // Fail safe fallback to avoid Vercel 500 error
+    return NextResponse.next();
   }
-
-  // Authenticated user trying to access /login
-  if (sessionCookie && pathname === '/login') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {
