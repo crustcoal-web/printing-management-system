@@ -43,16 +43,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10">
         {/* OFFICIAL NAAM STUDIO BRANDING */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="relative w-48 h-16 mb-4">
+          <div className="relative w-20 h-20 mb-4 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/50 shadow-xl flex items-center justify-center">
             <Image
-              src="/images/logo.png"
+              src="/images/logo-icon.png"
               alt="NAAM Studio Logo"
-              fill
+              width={64}
+              height={64}
               className="object-contain"
               priority
             />
           </div>
-          <h1 className="text-xl font-black tracking-tight text-white">
+          <h1 className="text-2xl font-black tracking-tight text-white">
             NAAM Studio
           </h1>
           <p className="text-xs text-slate-400 mt-1">
