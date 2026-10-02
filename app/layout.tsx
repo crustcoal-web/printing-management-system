@@ -5,6 +5,14 @@ import { ToastProvider } from '@/components/ui/Toast';
 export const metadata: Metadata = {
   title: 'NAAM Studio - Order & Business Management System',
   description: 'Production Order Management, Customer Ledger, Payments, Expenses, Profit Analytics & DOCX Slip Generator for NAAM Studio',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/images/logo-icon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/images/logo-icon.png',
+  },
 };
 
 export default function RootLayout({
