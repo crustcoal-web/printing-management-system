@@ -7,6 +7,8 @@ import {
   Expense,
   BusinessSettings,
   UserRole,
+  OrderStatus,
+  PaymentStatus,
 } from '../types';
 
 export class DataService {
@@ -55,7 +57,15 @@ export class DataService {
   // ----------------------------------------------------------------
   // ORDERS MANAGEMENT (SUPABASE DB)
   // ----------------------------------------------------------------
-  static async getOrders(role: UserRole = 'admin', options?: { includeDeleted?: boolean }): Promise<Order[]> {
+  static async getOrders(
+    role: UserRole = 'admin',
+    options?: {
+      includeDeleted?: boolean;
+      search?: string;
+      status?: OrderStatus;
+      paymentStatus?: PaymentStatus;
+    }
+  ): Promise<Order[]> {
     const supabase = createClient();
     let query = supabase
       .from('orders')
@@ -63,6 +73,19 @@ export class DataService {
 
     if (!options?.includeDeleted) {
       query = query.is('deleted_at', null);
+    }
+
+    if (options?.status) {
+      query = query.eq('status', options.status);
+    }
+
+    if (options?.paymentStatus) {
+      query = query.eq('payment_status', options.paymentStatus);
+    }
+
+    if (options?.search) {
+      const s = options.search.trim();
+      query = query.or(`order_number.ilike.%${s}%,customer_name.ilike.%${s}%,customer_phone.ilike.%${s}%,customer_city.ilike.%${s}%`);
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
