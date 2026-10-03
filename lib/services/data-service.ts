@@ -330,6 +330,19 @@ export class DataService {
   // ----------------------------------------------------------------
   // CUSTOMERS MANAGEMENT (SUPABASE DB)
   // ----------------------------------------------------------------
+  static async getCustomerByPhone(phone: string): Promise<Customer | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', phone)
+      .is('deleted_at', null)
+      .single();
+
+    if (error || !data) return null;
+    return data as Customer;
+  }
+
   static async getCustomers(): Promise<Customer[]> {
     const supabase = createClient();
     const { data, error } = await supabase
