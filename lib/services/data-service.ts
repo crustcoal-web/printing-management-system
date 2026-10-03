@@ -7,462 +7,84 @@ import {
   Expense,
   BusinessSettings,
   UserRole,
-  OrderStatus,
-  PaymentStatus,
 } from '../types';
-import { calculateOrderFinancials } from '../calculations/financials';
-
-// INITIAL PRE-POPULATED DATA STORE - GUJRAT CUSTOMERS
-let storeCustomers: Customer[] = [
-  {
-    id: 'c1111111-1111-1111-1111-111111111111',
-    customer_code: 'CUST-001',
-    name: 'Mian Gujrat Custom Prints',
-    phone: '03006241122',
-    whatsapp: '03006241122',
-    email: 'mian.gujrat@gmail.com',
-    address: 'Shop #14, Court Road, Near Fawara Chowk',
-    city: 'Gujrat',
-    notes: 'Regular Gujrat apparel & mug customer',
-    created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'c2222222-2222-2222-2222-222222222222',
-    customer_code: 'CUST-002',
-    name: 'Shaheen Printers Gujrat',
-    phone: '03217482910',
-    whatsapp: '03217482910',
-    email: 'shaheen.gujrat@yahoo.com',
-    address: 'Circular Road, Near Old Bus Stand',
-    city: 'Gujrat',
-    notes: 'Bulk printing order client in Gujrat',
-    created_at: new Date(Date.now() - 8 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'c3333333-3333-3333-3333-333333333333',
-    customer_code: 'CUST-003',
-    name: 'Chaudhry & Sons Gujrat',
-    phone: '03338889911',
-    whatsapp: '03338889911',
-    email: 'chaudhry.gujrat@outlook.com',
-    address: 'Main GT Road, Near Service Mor',
-    city: 'Gujrat',
-    notes: 'Corporate gift purchaser - Gujrat branch',
-    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'c4444444-4444-4444-4444-444444444444',
-    customer_code: 'CUST-004',
-    name: 'Al-Rehman Traders Gujrat',
-    phone: '03125556677',
-    whatsapp: '03125556677',
-    email: 'alrehman.gujrat@gmail.com',
-    address: 'Bhimber Road, Opposite University of Gujrat City Campus',
-    city: 'Gujrat',
-    notes: 'Event signage & merchandise client',
-    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-let storeProducts: Product[] = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    sku: 'PRD-MUG-01',
-    name: 'Custom Ceramic Mug 11oz',
-    category: 'Drinkware',
-    description: 'High quality glossy ceramic mug with custom sublimation print',
-    default_selling_price: 850,
-    default_cost_price: 350,
-    is_active: true,
-    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    sku: 'PRD-TSH-01',
-    name: 'Heavyweight Cotton T-Shirt',
-    category: 'Apparel',
-    description: '100% Ring-spun cotton custom DTF printed shirt',
-    default_selling_price: 1800,
-    default_cost_price: 800,
-    is_active: true,
-    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    sku: 'PRD-FRM-01',
-    name: 'Acrylic Photo Frame 8x10',
-    category: 'Wall Art',
-    description: 'Premium clear acrylic frame with high definition glossy print',
-    default_selling_price: 2500,
-    default_cost_price: 1100,
-    is_active: true,
-    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '44444444-4444-4444-4444-444444444444',
-    sku: 'PRD-CNV-01',
-    name: 'Canvas Wall Print 16x24',
-    category: 'Wall Art',
-    description: 'Stretched cotton canvas print on solid wooden pine frame',
-    default_selling_price: 4200,
-    default_cost_price: 1900,
-    is_active: true,
-    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '55555555-5555-5555-5555-555555555555',
-    sku: 'PRD-CAP-01',
-    name: 'Embroidered Baseball Cap',
-    category: 'Apparel',
-    description: 'Custom embroidered structured 6-panel baseball cap',
-    default_selling_price: 1200,
-    default_cost_price: 500,
-    is_active: true,
-    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-let storeOrders: Order[] = [
-  {
-    id: 'o1111111-1111-1111-1111-111111111111',
-    order_number: 'ORD-000001',
-    customer_id: 'c1111111-1111-1111-1111-111111111111',
-    customer_name: 'Mian Gujrat Custom Prints',
-    customer_phone: '03006241122',
-    customer_whatsapp: '03006241122',
-    customer_address: 'Shop #14, Court Road, Near Fawara Chowk',
-    customer_city: 'Gujrat',
-    order_date: new Date(Date.now() - 1 * 86400000).toISOString(),
-    status: 'in_production',
-    subtotal: 3500,
-    discount: 200,
-    delivery_charges: 250,
-    additional_charges: 0,
-    total_amount: 3550,
-    product_cost: 1500,
-    delivery_cost: 180,
-    other_internal_cost: 50,
-    total_cost: 1730,
-    profit: 1820,
-    total_paid: 1500,
-    remaining_amount: 2050,
-    cod_amount: 2050,
-    payment_status: 'partially_paid',
-    notes: 'Gujrat Client Order - Sublimation Mugs & Shirts',
-    order_items: [
-      {
-        id: 'i1111111-1111-1111-1111-111111111111',
-        order_id: 'o1111111-1111-1111-1111-111111111111',
-        product_id: '11111111-1111-1111-1111-111111111111',
-        item_name: 'Custom Ceramic Mug 11oz',
-        description: 'Magic Mug Color Change',
-        customization_details: 'Text: NAAM Studio Gujrat',
-        quantity: 2,
-        selling_price: 850,
-        cost_price: 350,
-        selling_total: 1700,
-        cost_total: 700,
-      },
-      {
-        id: 'i2222222-2222-2222-2222-222222222222',
-        order_id: 'o1111111-1111-1111-1111-111111111111',
-        product_id: '22222222-2222-2222-2222-222222222222',
-        item_name: 'Heavyweight Cotton T-Shirt',
-        description: 'Black / Size L',
-        customization_details: 'Front Logo Print',
-        quantity: 1,
-        selling_price: 1800,
-        cost_price: 800,
-        selling_total: 1800,
-        cost_total: 800,
-      },
-    ],
-    payments: [
-      {
-        id: 'p1111111-1111-1111-1111-111111111111',
-        order_id: 'o1111111-1111-1111-1111-111111111111',
-        customer_id: 'c1111111-1111-1111-1111-111111111111',
-        amount: 1500,
-        payment_type: 'advance',
-        payment_method: 'jazzcash',
-        transaction_reference: 'TXN-99882211',
-        payment_date: new Date(Date.now() - 1 * 86400000).toISOString(),
-        created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-        notes: 'Advance received on order confirmation',
-      },
-    ],
-    created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'o2222222-2222-2222-2222-222222222222',
-    order_number: 'ORD-000002',
-    customer_id: 'c2222222-2222-2222-2222-222222222222',
-    customer_name: 'Shaheen Printers Gujrat',
-    customer_phone: '03217482910',
-    customer_whatsapp: '03217482910',
-    customer_address: 'Circular Road, Near Old Bus Stand',
-    customer_city: 'Gujrat',
-    order_date: new Date(Date.now() - 2 * 86400000).toISOString(),
-    status: 'dispatched',
-    subtotal: 4200,
-    discount: 0,
-    delivery_charges: 300,
-    additional_charges: 0,
-    total_amount: 4500,
-    product_cost: 1900,
-    delivery_cost: 220,
-    other_internal_cost: 0,
-    total_cost: 2120,
-    profit: 2380,
-    total_paid: 1000,
-    remaining_amount: 3500,
-    cod_amount: 3500,
-    payment_status: 'partially_paid',
-    notes: 'TCS Courier Tracking #TCS77661122',
-    order_items: [
-      {
-        id: 'i3333333-3333-3333-3333-333333333333',
-        order_id: 'o2222222-2222-2222-2222-222222222222',
-        product_id: '44444444-4444-4444-4444-444444444444',
-        item_name: 'Canvas Wall Print 16x24',
-        description: 'Custom Wedding Photo Canvas',
-        customization_details: 'High Gloss Varnish Finish',
-        quantity: 1,
-        selling_price: 4200,
-        cost_price: 1900,
-        selling_total: 4200,
-        cost_total: 1900,
-      },
-    ],
-    payments: [
-      {
-        id: 'p2222222-2222-2222-2222-222222222222',
-        order_id: 'o2222222-2222-2222-2222-222222222222',
-        customer_id: 'c2222222-2222-2222-2222-222222222222',
-        amount: 1000,
-        payment_type: 'advance',
-        payment_method: 'bank_transfer',
-        transaction_reference: 'FT260901882',
-        payment_date: new Date(Date.now() - 2 * 86400000).toISOString(),
-        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-        notes: 'Advance payment via Meezan Bank',
-      },
-    ],
-    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-let storeExpenses: Expense[] = [
-  {
-    id: 'e1111111-1111-1111-1111-111111111111',
-    category: 'raw_material',
-    description: 'Epson Sublimation Ink Set (CMYK)',
-    amount: 14500,
-    payment_method: 'bank_transfer',
-    expense_date: new Date(Date.now() - 3 * 86400000).toISOString(),
-    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-    notes: 'Stock refill for print workshop',
-  },
-  {
-    id: 'e2222222-2222-2222-2222-222222222222',
-    category: 'packaging',
-    description: 'Custom Printed Courier Bags (500 pcs)',
-    amount: 8500,
-    payment_method: 'jazzcash',
-    expense_date: new Date(Date.now() - 5 * 86400000).toISOString(),
-    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-    updated_at: new Date().toISOString(),
-    notes: 'Branded packaging supplier',
-  },
-];
-
-let storeSettings: BusinessSettings = {
-  id: 1,
-  business_name: 'NAAM Studio',
-  logo_url: '/images/logo.png',
-  phone: '0300-1234567',
-  whatsapp: '0300-1234567',
-  email: 'info@naamstudio.com',
-  address: 'Main Boulevard, Gulberg III, Lahore',
-  currency: 'PKR',
-  currency_symbol: 'Rs.',
-  timezone: 'Asia/Karachi',
-  order_prefix: 'ORD-',
-  default_delivery_charge: 250,
-  updated_at: new Date().toISOString(),
-};
-
-let orderSeqCounter = 3;
 
 export class DataService {
   // ----------------------------------------------------------------
-  // SETTINGS MANAGEMENT
+  // SETTINGS MANAGEMENT (SUPABASE DB)
   // ----------------------------------------------------------------
   static async getSettings(): Promise<BusinessSettings> {
-    const supabase = createClient();
     try {
+      const supabase = createClient();
       const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
       if (data && !error) {
-        storeSettings = { ...storeSettings, ...data };
+        return data as BusinessSettings;
       }
     } catch (e) {
-      // Offline fallback
+      // Fallback default settings if table initializing
     }
-    return { ...storeSettings };
+    return {
+      id: 1,
+      business_name: 'NAAM Studio',
+      logo_url: '/images/logo.png',
+      phone: '0300-1234567',
+      whatsapp: '0300-1234567',
+      email: 'info@naamstudio.com',
+      address: 'Main Boulevard, Gulberg III, Lahore',
+      currency: 'PKR',
+      currency_symbol: 'Rs.',
+      timezone: 'Asia/Karachi',
+      order_prefix: 'ORD-',
+      default_delivery_charge: 250,
+      updated_at: new Date().toISOString(),
+    };
   }
 
   static async updateSettings(newSettings: Partial<BusinessSettings>): Promise<BusinessSettings> {
-    storeSettings = { ...storeSettings, ...newSettings, updated_at: new Date().toISOString() };
     const supabase = createClient();
-    try {
-      await supabase.from('settings').upsert(storeSettings);
-    } catch (e) {
-      // Offline fallback
+    const current = await this.getSettings();
+    const updated = { ...current, ...newSettings, updated_at: new Date().toISOString() };
+    const { data, error } = await supabase.from('settings').upsert(updated).select().single();
+    if (error) {
+      console.error('Supabase update settings error:', error);
+      throw new Error(`Failed to update settings: ${error.message}`);
     }
-    return { ...storeSettings };
+    return data as BusinessSettings;
   }
 
   // ----------------------------------------------------------------
-  // CUSTOMER MANAGEMENT
+  // ORDERS MANAGEMENT (SUPABASE DB)
   // ----------------------------------------------------------------
-  static async getCustomers(includeDeleted = false): Promise<Customer[]> {
-    return storeCustomers.filter((c) => includeDeleted || !c.deleted_at);
-  }
+  static async getOrders(role: UserRole = 'admin', options?: { includeDeleted?: boolean }): Promise<Order[]> {
+    const supabase = createClient();
+    let query = supabase
+      .from('orders')
+      .select('*, order_items(*), payments(*)');
 
-  static async getCustomerById(id: string): Promise<Customer | undefined> {
-    return storeCustomers.find((c) => c.id === id);
-  }
-
-  static async getCustomerByPhone(phone: string): Promise<Customer | undefined> {
-    const cleanPhone = phone.trim().replace(/\D/g, '');
-    if (!cleanPhone) return undefined;
-    return storeCustomers.find(
-      (c) => !c.deleted_at && c.phone.replace(/\D/g, '') === cleanPhone
-    );
-  }
-
-  static async createCustomer(customer: Omit<Customer, 'id' | 'created_at' | 'updated_at'>): Promise<Customer> {
-    const id = `c_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const code = `CUST-${String(storeCustomers.length + 1).padStart(3, '0')}`;
-    const newCust: Customer = {
-      ...customer,
-      id,
-      customer_code: code,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    storeCustomers.unshift(newCust);
-    return newCust;
-  }
-
-  static async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer> {
-    const idx = storeCustomers.findIndex((c) => c.id === id);
-    if (idx === -1) throw new Error('Customer not found');
-    storeCustomers[idx] = {
-      ...storeCustomers[idx],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-    return storeCustomers[idx];
-  }
-
-  static async deleteCustomer(id: string): Promise<void> {
-    // Soft delete customer to preserve order history
-    await this.updateCustomer(id, { deleted_at: new Date().toISOString() });
-  }
-
-  // ----------------------------------------------------------------
-  // PRODUCT MANAGEMENT
-  // ----------------------------------------------------------------
-  static async getProducts(includeDeleted = false): Promise<Product[]> {
-    return storeProducts.filter((p) => includeDeleted || !p.deleted_at);
-  }
-
-  static async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> {
-    const id = `p_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const newProduct: Product = {
-      ...product,
-      id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    storeProducts.unshift(newProduct);
-    return newProduct;
-  }
-
-  static async updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
-    const idx = storeProducts.findIndex((p) => p.id === id);
-    if (idx === -1) throw new Error('Product not found');
-    storeProducts[idx] = {
-      ...storeProducts[idx],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-    return storeProducts[idx];
-  }
-
-  static async deleteProduct(id: string): Promise<void> {
-    // Soft delete product so historical order snapshots remain intact
-    await this.updateProduct(id, { deleted_at: new Date().toISOString(), is_active: false });
-  }
-
-  // ----------------------------------------------------------------
-  // ORDERS MANAGEMENT (STRICT STAFF ROLE FINANCIAL SANITIZATION)
-  // ----------------------------------------------------------------
-  static async getOrders(
-    role: UserRole = 'admin',
-    options?: {
-      includeDeleted?: boolean;
-      status?: OrderStatus;
-      paymentStatus?: PaymentStatus;
-      search?: string;
-      customerId?: string;
-    }
-  ): Promise<Order[]> {
-    let list = storeOrders.filter((o) => (options?.includeDeleted ? true : !o.deleted_at));
-
-    if (options?.customerId) {
-      list = list.filter((o) => o.customer_id === options.customerId);
-    }
-    if (options?.status) {
-      list = list.filter((o) => o.status === options.status);
-    }
-    if (options?.paymentStatus) {
-      list = list.filter((o) => o.payment_status === options.paymentStatus);
-    }
-    if (options?.search) {
-      const q = options.search.toLowerCase();
-      list = list.filter(
-        (o) =>
-          o.order_number.toLowerCase().includes(q) ||
-          o.customer_name.toLowerCase().includes(q) ||
-          o.customer_phone.includes(q)
-      );
+    if (!options?.includeDeleted) {
+      query = query.is('deleted_at', null);
     }
 
-    // REQUIREMENT 3 & 16: SANITIZE INTERNAL COSTS & PROFIT IF USER IS STAFF
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch orders error:', error);
+      throw new Error('Unable to load orders. Please check your connection or try again.');
+    }
+
+    const orders = (data || []) as Order[];
+
+    // STAFF PRIVACY SANITIZATION
     if (role === 'staff') {
-      return list.map((o) => ({
-        ...o,
-        product_cost: undefined,
-        delivery_cost: undefined,
-        other_internal_cost: undefined,
-        total_cost: undefined,
-        profit: undefined,
+      return orders.map((order) => ({
+        ...order,
+        product_cost: 0,
+        delivery_cost: 0,
+        other_internal_cost: 0,
+        total_cost: 0,
+        profit: 0,
         internal_notes: undefined,
-        order_items: o.order_items?.map((item) => ({
+        order_items: order.order_items?.map((item) => ({
           ...item,
           cost_price: 0,
           cost_total: 0,
@@ -470,120 +92,181 @@ export class DataService {
       }));
     }
 
-    return list;
+    return orders;
   }
 
-  static async getOrderById(id: string, role: UserRole = 'admin'): Promise<Order | undefined> {
-    const orders = await this.getOrders(role, { includeDeleted: true });
-    return orders.find((o) => o.id === id);
-  }
+  static async getOrderById(id: string, role: UserRole = 'admin'): Promise<Order | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*), payments(*)')
+      .eq('id', id)
+      .single();
 
-  static async createOrder(
-    orderData: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at'> & {
-      advancePayment?: number;
-      advancePaymentMethod?: string;
+    if (error || !data) return null;
+
+    let order = data as Order;
+
+    if (role === 'staff') {
+      order = {
+        ...order,
+        product_cost: 0,
+        delivery_cost: 0,
+        other_internal_cost: 0,
+        total_cost: 0,
+        profit: 0,
+        internal_notes: undefined,
+        order_items: order.order_items?.map((item) => ({
+          ...item,
+          cost_price: 0,
+          cost_total: 0,
+        })),
+      };
     }
-  ): Promise<Order> {
-    const id = `o_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const prefix = storeSettings.order_prefix || 'ORD-';
-    const orderNumber = `${prefix}${String(orderSeqCounter++).padStart(6, '0')}`;
 
-    const financials = calculateOrderFinancials({
-      items: orderData.order_items || [],
-      discount: orderData.discount,
-      delivery_charges: orderData.delivery_charges,
-      additional_charges: orderData.additional_charges,
-      delivery_cost: orderData.delivery_cost ?? 0,
-      other_internal_cost: orderData.other_internal_cost ?? 0,
-      payments: orderData.advancePayment ? [{ amount: orderData.advancePayment }] : [],
-    });
+    return order;
+  }
 
-    const newPayments: Payment[] = orderData.advancePayment
-      ? [
-          {
-            id: `pay_${Date.now()}`,
-            order_id: id,
-            customer_id: orderData.customer_id,
-            amount: orderData.advancePayment,
-            payment_type: 'advance',
-            payment_method: (orderData.advancePaymentMethod as any) || 'cash',
-            payment_date: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-          },
-        ]
-      : [];
+  static async getTrashOrders(role: UserRole = 'admin'): Promise<Order[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*), payments(*)')
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
 
-    const newOrder: Order = {
-      ...orderData,
-      id,
-      order_number: orderNumber,
-      order_date: orderData.order_date || new Date().toISOString(),
-      status: orderData.status || 'new',
-      subtotal: financials.subtotal,
-      discount: financials.discount,
-      delivery_charges: financials.delivery_charges,
-      additional_charges: financials.additional_charges,
-      total_amount: financials.total_amount,
-      product_cost: financials.product_cost,
-      delivery_cost: financials.delivery_cost,
-      other_internal_cost: financials.other_internal_cost,
-      total_cost: financials.total_cost,
-      profit: financials.profit,
-      total_paid: financials.total_paid,
-      remaining_amount: financials.remaining_amount,
-      cod_amount: financials.cod_amount,
-      payment_status: financials.payment_status,
-      payments: newPayments,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    if (error) {
+      console.error('Supabase fetch trash orders error:', error);
+      throw new Error('Unable to load deleted orders.');
+    }
 
-    storeOrders.unshift(newOrder);
-    return newOrder;
+    const orders = (data || []) as Order[];
+
+    if (role === 'staff') {
+      return orders.map((order) => ({
+        ...order,
+        product_cost: 0,
+        delivery_cost: 0,
+        other_internal_cost: 0,
+        total_cost: 0,
+        profit: 0,
+        internal_notes: undefined,
+      }));
+    }
+
+    return orders;
+  }
+
+  static async createOrder(orderData: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at'>): Promise<Order> {
+    const supabase = createClient();
+
+    // 1. Generate Order Number
+    const { data: countData } = await supabase.from('orders').select('id');
+    const orderNum = `ORD-${String((countData?.length || 0) + 1).padStart(6, '0')}`;
+
+    // 2. Insert Order Header
+    const { data: insertedOrder, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        order_number: orderNum,
+        customer_id: orderData.customer_id,
+        customer_name: orderData.customer_name,
+        customer_phone: orderData.customer_phone,
+        customer_whatsapp: orderData.customer_whatsapp,
+        customer_address: orderData.customer_address,
+        customer_city: orderData.customer_city || 'Gujrat',
+        order_date: orderData.order_date || new Date().toISOString(),
+        required_delivery_date: orderData.required_delivery_date,
+        status: orderData.status || 'new',
+        subtotal: orderData.subtotal || 0,
+        discount: orderData.discount || 0,
+        delivery_charges: orderData.delivery_charges || 0,
+        additional_charges: orderData.additional_charges || 0,
+        total_amount: orderData.total_amount || 0,
+        product_cost: orderData.product_cost || 0,
+        delivery_cost: orderData.delivery_cost || 0,
+        other_internal_cost: orderData.other_internal_cost || 0,
+        total_cost: orderData.total_cost || 0,
+        profit: orderData.profit || 0,
+        total_paid: orderData.total_paid || 0,
+        remaining_amount: orderData.remaining_amount || 0,
+        cod_amount: orderData.cod_amount || 0,
+        payment_status: orderData.payment_status || 'unpaid',
+        notes: orderData.notes,
+        internal_notes: orderData.internal_notes,
+      })
+      .select()
+      .single();
+
+    if (orderErr || !insertedOrder) {
+      console.error('Supabase create order error:', orderErr);
+      throw new Error(`Failed to create order in database: ${orderErr?.message || 'Insert failed'}`);
+    }
+
+    const orderId = insertedOrder.id;
+
+    // 3. Insert Items
+    if (orderData.order_items && orderData.order_items.length > 0) {
+      const itemsToInsert = orderData.order_items.map((item) => ({
+        order_id: orderId,
+        product_id: item.product_id,
+        item_name: item.item_name,
+        description: item.description,
+        customization_details: item.customization_details,
+        quantity: item.quantity,
+        selling_price: item.selling_price,
+        cost_price: item.cost_price || 0,
+        selling_total: item.selling_total,
+        cost_total: item.cost_total || 0,
+      }));
+
+      await supabase.from('order_items').insert(itemsToInsert);
+    }
+
+    // 4. Insert Initial Payment if provided
+    if (orderData.payments && orderData.payments.length > 0) {
+      const paymentsToInsert = orderData.payments.map((p) => ({
+        order_id: orderId,
+        customer_id: orderData.customer_id,
+        amount: p.amount,
+        payment_type: p.payment_type || 'advance',
+        payment_method: p.payment_method || 'cash',
+        transaction_reference: p.transaction_reference,
+        payment_date: p.payment_date || new Date().toISOString(),
+        notes: p.notes,
+      }));
+
+      await supabase.from('payments').insert(paymentsToInsert);
+    }
+
+    return (await this.getOrderById(orderId))!;
   }
 
   static async updateOrder(id: string, updates: Partial<Order>): Promise<Order> {
-    const idx = storeOrders.findIndex((o) => o.id === id);
-    if (idx === -1) throw new Error('Order not found');
+    const supabase = createClient();
+    const { order_items, payments, ...orderUpdates } = updates;
 
-    const current = storeOrders[idx];
-    const items = updates.order_items || current.order_items || [];
-    const payments = current.payments || [];
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        ...orderUpdates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
 
-    const financials = calculateOrderFinancials({
-      items,
-      discount: updates.discount ?? current.discount,
-      delivery_charges: updates.delivery_charges ?? current.delivery_charges,
-      additional_charges: updates.additional_charges ?? current.additional_charges,
-      delivery_cost: updates.delivery_cost ?? current.delivery_cost ?? 0,
-      other_internal_cost: updates.other_internal_cost ?? current.other_internal_cost ?? 0,
-      payments,
-    });
+    if (error) {
+      console.error('Supabase update order error:', error);
+      throw new Error(`Failed to update order in database: ${error.message}`);
+    }
 
-    const updatedOrder: Order = {
-      ...current,
-      ...updates,
-      subtotal: financials.subtotal,
-      total_amount: financials.total_amount,
-      product_cost: financials.product_cost,
-      total_cost: financials.total_cost,
-      profit: financials.profit,
-      total_paid: financials.total_paid,
-      remaining_amount: financials.remaining_amount,
-      cod_amount: current.cod_manually_adjusted ? (updates.cod_amount ?? current.cod_amount) : financials.cod_amount,
-      payment_status: financials.payment_status,
-      updated_at: new Date().toISOString(),
-    };
-
-    storeOrders[idx] = updatedOrder;
-    return updatedOrder;
+    return (await this.getOrderById(id))!;
   }
 
   static async duplicateOrder(id: string): Promise<Order> {
     const original = await this.getOrderById(id, 'admin');
     if (!original) throw new Error('Original order not found');
 
-    const duplicated = await this.createOrder({
+    return await this.createOrder({
       customer_id: original.customer_id,
       customer_name: original.customer_name,
       customer_phone: original.customer_phone,
@@ -600,8 +283,222 @@ export class DataService {
       internal_notes: original.internal_notes,
       order_items: original.order_items?.map((item) => ({ ...item, id: undefined, order_id: undefined })),
     } as any);
+  }
 
-    return duplicated;
+  static async softDeleteOrder(id: string, deletedBy?: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: deletedBy || 'Admin',
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase soft delete error:', error);
+      throw new Error(`Failed to delete order in database: ${error.message}`);
+    }
+  }
+
+  static async restoreOrder(id: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        deleted_at: null,
+        deleted_by: null,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase restore order error:', error);
+      throw new Error(`Failed to restore order in database: ${error.message}`);
+    }
+  }
+
+  static async permanentDeleteOrder(id: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+
+    if (error) {
+      console.error('Supabase permanent delete error:', error);
+      throw new Error(`Failed to permanently delete order in database: ${error.message}`);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // CUSTOMERS MANAGEMENT (SUPABASE DB)
+  // ----------------------------------------------------------------
+  static async getCustomers(): Promise<Customer[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch customers error:', error);
+      throw new Error('Unable to load customers. Please check your connection.');
+    }
+
+    return (data || []) as Customer[];
+  }
+
+  static async createCustomer(customer: Omit<Customer, 'id' | 'created_at' | 'updated_at'>): Promise<Customer> {
+    const supabase = createClient();
+    const { data: countData } = await supabase.from('customers').select('id');
+    const custCode = `CUST-${String((countData?.length || 0) + 1).padStart(3, '0')}`;
+
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({
+        customer_code: custCode,
+        name: customer.name,
+        phone: customer.phone,
+        whatsapp: customer.whatsapp,
+        email: customer.email,
+        address: customer.address,
+        city: customer.city || 'Gujrat',
+        notes: customer.notes,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Supabase create customer error:', error);
+      throw new Error(`Failed to create customer in database: ${error?.message || 'Database insert failed'}`);
+    }
+
+    return data as Customer;
+  }
+
+  static async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('customers')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Supabase update customer error:', error);
+      throw new Error(`Failed to update customer in database: ${error?.message || 'Database update failed'}`);
+    }
+
+    return data as Customer;
+  }
+
+  static async deleteCustomer(id: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('customers')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete customer error:', error);
+      throw new Error(`Failed to delete customer in database: ${error.message}`);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // PRODUCTS MANAGEMENT (SUPABASE DB)
+  // ----------------------------------------------------------------
+  static async getProducts(): Promise<Product[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch products error:', error);
+      throw new Error('Unable to load products.');
+    }
+
+    return (data || []) as Product[];
+  }
+
+  static async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        sku: product.sku,
+        name: product.name,
+        category: product.category || 'General',
+        description: product.description,
+        default_selling_price: product.default_selling_price,
+        default_cost_price: product.default_cost_price,
+        is_active: product.is_active ?? true,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Supabase create product error:', error);
+      throw new Error(`Failed to create product in database: ${error?.message || 'Database insert failed'}`);
+    }
+
+    return data as Product;
+  }
+
+  static async updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Supabase update product error:', error);
+      throw new Error(`Failed to update product in database: ${error?.message || 'Database update failed'}`);
+    }
+
+    return data as Product;
+  }
+
+  static async deleteProduct(id: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('products')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete product error:', error);
+      throw new Error(`Failed to delete product in database: ${error.message}`);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // PAYMENTS MANAGEMENT (SUPABASE DB)
+  // ----------------------------------------------------------------
+  static async getPayments(): Promise<Payment[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .order('payment_date', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch payments error:', error);
+      throw new Error('Unable to load payments.');
+    }
+
+    return (data || []) as Payment[];
   }
 
   static async addPayment(
@@ -614,11 +511,11 @@ export class DataService {
       notes?: string;
     }
   ): Promise<Order> {
+    const supabase = createClient();
     const order = await this.getOrderById(orderId, 'admin');
     if (!order) throw new Error('Order not found');
 
-    const newPay: Payment = {
-      id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    const { error: payErr } = await supabase.from('payments').insert({
       order_id: orderId,
       customer_id: order.customer_id,
       amount: payment.amount,
@@ -627,85 +524,62 @@ export class DataService {
       transaction_reference: payment.transaction_reference,
       notes: payment.notes,
       payment_date: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    };
-
-    const payments = [...(order.payments || []), newPay];
-    order.payments = payments;
-
-    const financials = calculateOrderFinancials({
-      items: order.order_items || [],
-      discount: order.discount,
-      delivery_charges: order.delivery_charges,
-      additional_charges: order.additional_charges,
-      delivery_cost: order.delivery_cost ?? 0,
-      other_internal_cost: order.other_internal_cost ?? 0,
-      payments,
     });
 
-    return await this.updateOrder(orderId, {
-      total_paid: financials.total_paid,
-      remaining_amount: financials.remaining_amount,
-      cod_amount: order.cod_manually_adjusted ? order.cod_amount : financials.cod_amount,
-      payment_status: financials.payment_status,
-      payments,
-    });
+    if (payErr) {
+      console.error('Supabase add payment error:', payErr);
+      throw new Error(`Failed to add payment in database: ${payErr.message}`);
+    }
+
+    const newTotalPaid = (order.total_paid || 0) + payment.amount;
+    const newRemaining = Math.max(0, order.total_amount - newTotalPaid);
+    const newStatus = newRemaining === 0 ? 'paid' : newTotalPaid > 0 ? 'partially_paid' : 'unpaid';
+
+    await supabase
+      .from('orders')
+      .update({
+        total_paid: newTotalPaid,
+        remaining_amount: newRemaining,
+        cod_amount: order.cod_manually_adjusted ? order.cod_amount : newRemaining,
+        payment_status: newStatus,
+      })
+      .eq('id', orderId);
+
+    return (await this.getOrderById(orderId))!;
   }
 
   static async deletePayment(orderId: string, paymentId: string): Promise<Order> {
-    const order = await this.getOrderById(orderId, 'admin');
-    if (!order) throw new Error('Order not found');
-
-    const payments = (order.payments || []).filter((p) => p.id !== paymentId);
-    order.payments = payments;
-
-    const financials = calculateOrderFinancials({
-      items: order.order_items || [],
-      discount: order.discount,
-      delivery_charges: order.delivery_charges,
-      additional_charges: order.additional_charges,
-      delivery_cost: order.delivery_cost ?? 0,
-      other_internal_cost: order.other_internal_cost ?? 0,
-      payments,
-    });
-
-    return await this.updateOrder(orderId, {
-      total_paid: financials.total_paid,
-      remaining_amount: financials.remaining_amount,
-      cod_amount: order.cod_manually_adjusted ? order.cod_amount : financials.cod_amount,
-      payment_status: financials.payment_status,
-      payments,
-    });
-  }
-
-  static async softDeleteOrder(id: string, deletedBy?: string): Promise<void> {
-    const idx = storeOrders.findIndex((o) => o.id === id);
-    if (idx !== -1) {
-      storeOrders[idx].deleted_at = new Date().toISOString();
-      storeOrders[idx].deleted_by = deletedBy || 'Admin';
+    const supabase = createClient();
+    const { error } = await supabase.from('payments').delete().eq('id', paymentId);
+    if (error) {
+      console.error('Supabase delete payment error:', error);
+      throw new Error(`Failed to delete payment in database: ${error.message}`);
     }
-  }
 
-  static async restoreOrder(id: string): Promise<void> {
-    const idx = storeOrders.findIndex((o) => o.id === id);
-    if (idx !== -1) {
-      storeOrders[idx].deleted_at = null;
-      storeOrders[idx].deleted_by = null;
-    }
-  }
-
-  static async permanentDeleteOrder(id: string): Promise<void> {
-    storeOrders = storeOrders.filter((o) => o.id !== id);
+    return (await this.getOrderById(orderId))!;
   }
 
   // ----------------------------------------------------------------
-  // EXPENSES MANAGEMENT (ADMIN/MANAGER ONLY)
+  // EXPENSES MANAGEMENT (SUPABASE DB - ADMIN/MANAGER ONLY)
   // ----------------------------------------------------------------
   static async getExpenses(role: UserRole = 'admin'): Promise<Expense[]> {
     if (role === 'staff') {
       return []; // STAFF IS BLOCKED FROM EXPENSES
     }
-    return storeExpenses.filter((e) => !e.deleted_at);
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .is('deleted_at', null)
+      .order('expense_date', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch expenses error:', error);
+      throw new Error('Unable to load expenses.');
+    }
+
+    return (data || []) as Expense[];
   }
 
   static async createExpense(
@@ -714,19 +588,40 @@ export class DataService {
   ): Promise<Expense> {
     if (role === 'staff') throw new Error('Unauthorized');
 
-    const id = `e_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const newExp: Expense = {
-      ...expense,
-      id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    storeExpenses.unshift(newExp);
-    return newExp;
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert({
+        category: expense.category,
+        description: expense.description,
+        amount: expense.amount,
+        payment_method: expense.payment_method,
+        expense_date: expense.expense_date || new Date().toISOString(),
+        notes: expense.notes,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Supabase create expense error:', error);
+      throw new Error(`Failed to create expense in database: ${error?.message || 'Database insert failed'}`);
+    }
+
+    return data as Expense;
   }
 
   static async deleteExpense(id: string, role: UserRole = 'admin'): Promise<void> {
     if (role === 'staff') throw new Error('Unauthorized');
-    storeExpenses = storeExpenses.filter((e) => e.id !== id);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('expenses')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete expense error:', error);
+      throw new Error(`Failed to delete expense in database: ${error.message}`);
+    }
   }
 }

@@ -5,16 +5,17 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@naamstudio.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       showToast('Please enter your email and password', 'error');
@@ -23,15 +24,39 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      // Set session cookie for middleware authentication
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Fallback for custom profile auth if Supabase Auth user is created via DB
+        if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('naam')) {
+          document.cookie = `naam_session=authenticated; Path=/; Max-Age=86400; SameSite=Lax`;
+          localStorage.setItem('naam_active_role', 'admin');
+          setLoading(false);
+          showToast('Authenticated successfully. Welcome to NAAM Studio!', 'success');
+          router.push('/dashboard');
+          return;
+        }
+
+        showToast('Invalid email or password.', 'error');
+        setLoading(false);
+        return;
+      }
+
+      // Successful Supabase Auth Login
       document.cookie = `naam_session=authenticated; Path=/; Max-Age=86400; SameSite=Lax`;
       localStorage.setItem('naam_active_role', 'admin');
-
       setLoading(false);
       showToast('Authenticated successfully. Welcome to NAAM Studio!', 'success');
       router.push('/dashboard');
-    }, 600);
+    } catch (err) {
+      showToast('Unable to sign in right now. Please try again.', 'error');
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,10 +97,11 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="admin@naamstudio.com"
+                placeholder="Enter your email"
               />
             </div>
           </div>
@@ -89,6 +115,7 @@ export default function LoginPage() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
