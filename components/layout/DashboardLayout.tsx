@@ -11,6 +11,7 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('admin');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Load active role from localStorage for testing role restrictions
   useEffect(() => {
@@ -27,14 +28,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 antialiased">
-      {/* SIDEBAR NAVIGATION */}
-      <Sidebar role={role} onRoleChange={handleRoleChange} />
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+      {/* SIDEBAR NAVIGATION (DESKTOP & MOBILE DRAWER) */}
+      <Sidebar
+        role={role}
+        onRoleChange={handleRoleChange}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        <Header role={role} />
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">{children}</main>
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden w-full">
+        <Header
+          role={role}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
+        />
+        <main className="flex-1 p-3 sm:p-6 md:p-8 max-w-7xl w-full mx-auto overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
   );
